@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
-import { ButtonBlackBorder, ButtonGreen, ButtonGreenBorder, ButtonSky, ButtonSkyBorder } from "@/components/global/Button";
-import { TbEye, TbBook, TbKeyFilled, TbPencil, TbPrinter, TbReceipt } from "react-icons/tb";
-import { ModalIndikator } from "../Pohon/ModalIndikator";
+import { ButtonBlackBorder, ButtonGreen, ButtonGreenBorder, ButtonRedBorder, ButtonSkyBorder } from "@/components/global/Button";
+import { TbEye, TbBook, TbKeyFilled, TbPencil, TbPrinter, TbReceipt, TbUpload, TbTrash } from "react-icons/tb";
+import { ModalUploadRincianBelanja } from "./ModalUploadRincianBelaja";
 import { getToken } from "@/components/lib/Cookie";
 import { OpdTahunNull, TahunNull } from "@/components/global/OpdTahunNull";
 import { LoadingClip } from "@/components/global/Loading";
+import { AlertQuestion } from "@/components/global/Alert";
 
 interface TableLaporan {
     tahun: string;
@@ -65,6 +66,9 @@ interface LaporanRincianBelanja {
 export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd, nip, role }) => {
 
     const [Laporan, setLaporan] = useState<LaporanRincianBelanja[]>([]);
+    const [ModalOpen, setModalOpen] = useState<boolean>(false);
+    const [FetchTrigger, setFetchTrigger] = useState<boolean>(false);
+    const [Bt, setBt] = useState<boolean>(false);
 
     const [Loading, setLoading] = useState<boolean>(false);
     const [Error, setError] = useState<boolean>(false);
@@ -116,7 +120,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
         } else {
             setError(true);
         }
-    }, [role, kode_opd, nip, tahun, token]);
+    }, [role, kode_opd, nip, tahun, token, FetchTrigger]);
 
     function formatRupiah(angka: number) {
         if (typeof angka !== 'number') {
@@ -124,12 +128,6 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
         }
         return angka.toLocaleString('id-ID'); // 'id-ID' untuk format Indonesia
     }
-
-    // useEffect(() => {
-    //     console.log('nip :', nip)
-    //     console.log('kode_opd :', kode_opd)
-    //     console.log('role :', role)
-    // }, []);
 
     if (Loading) {
         return (
@@ -168,6 +166,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                         <th className="border-r border-b px-6 py-3 min-w-[300px]">Indikator Kinerja</th>
                         <th className="border-r border-b px-6 py-3 min-w-[100px]">Target/Satuan</th>
                         <th className="border-r border-b px-6 py-3 min-w-[170px]">Anggaran</th>
+                        <th className="border-r border-b px-6 py-3 min-w-[200px]">Dokumen Anggaran</th>
                     </tr>
                 </thead>
                 {DataNull ?
@@ -202,6 +201,47 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                     ))
                                 }
                                 <td className="border-r border-b px-6 py-4">Rp.{formatRupiah(data.total_anggaran)}</td>
+                                <td className="border-r border-b px-6 py-4">
+                                    <div className="flex flex-col justify-center items-center gap-2">
+                                        {Bt ? 
+                                            ((role == 'level_3' || role == 'super_admin') ? 
+                                                <ButtonSkyBorder
+                                                    className="flex items-center gap-1 w-full"
+                                                    onClick={() => setModalOpen(true)}
+                                                >
+                                                    <TbUpload />
+                                                    Upload
+                                                </ButtonSkyBorder>
+                                                :
+                                                "dokumen belum di tambahkan oleh pemilik"
+                                            )   
+                                        :
+                                            <>
+                                                <div className={`border rounded-lg px-2 py-1 text-white bg-emerald-500`}>
+                                                    <p className="border-b">Rp. 3.000.000</p>
+                                                    <p className="font-light text-sm cursor-pointer hover:text-blue-200 italic">Contoh Nama File PDF.pdf</p>
+                                                </div>
+                                                {(role == 'level_3' || role == 'super_admin') ? 
+                                                    <ButtonRedBorder
+                                                        className="flex items-center gap-1 w-full"
+                                                        onClick={() => {
+                                                            AlertQuestion("Hapus", "Hapus data anggaran dan file rincian belanja?", "question", "Hapus", "Batal").then((result) => {
+                                                                if(result.isConfirmed){
+
+                                                                }
+                                                            })
+                                                        }}
+                                                    >
+                                                        <TbTrash />
+                                                        Hapus
+                                                    </ButtonRedBorder>
+                                                :
+                                                    <></>
+                                                }
+                                            </>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                             {data.rincian_belanja.map((rekin: RincianBelanja, index_rb: number) => (
                                 <React.Fragment key={index_rb}>
@@ -213,6 +253,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                         {rekin.indikator === null ? (
                                             <React.Fragment>
                                                 <td className="border-r border-b px-6 py-4">-</td>
+                                                <td className="border-r border-b px-6 py-4 text-center">-</td>
                                                 <td className="border-r border-b px-6 py-4 text-center">-</td>
                                             </React.Fragment>
                                         ) : (
@@ -228,6 +269,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                             </React.Fragment>
                                         )}
                                         <td rowSpan={rekin.indikator ? rekin.indikator.length : 2} className="border-r border-b px-6 py-4">Rp.{formatRupiah(rekin.total_anggaran || 0)}</td>
+                                        <td rowSpan={rekin.indikator ? rekin.indikator.length : 2} className="border-r border-b px-6 py-4">-</td>
                                     </tr>
                                     {/* Baris-baris untuk indikator selanjutnya */}
                                     {rekin.indikator ?
@@ -244,21 +286,23 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                             </tr>
                                         ))
                                         :
-                                            <tr>
-                                                <td className="border-r border-b px-6 py-4">-</td>
-                                                    <td className="border-r border-b px-6 py-4 text-center">-</td>
-                                            </tr>
+                                        <tr>
+                                            <td className="border-r border-b px-6 py-4">-</td>
+                                            <td className="border-r border-b px-6 py-4 text-center">-</td>
+                                        </tr>
                                     }
                                     {rekin.rencana_aksi === null ?
                                         <tr>
                                             <td colSpan={5} className="border-r border-b px-6 py-4 text-red-500">Renaksi Belum di tambahkan di rencana kinerja</td>
                                             <td className="border-r border-b px-6 py-4">Rp.0</td>
+                                            <td className="border-r border-b px-6 py-4">-</td>
                                         </tr>
                                         :
                                         rekin.rencana_aksi.map((renaksi: RencanaAksi, index_renaksi: number) => (
                                             <tr key={renaksi.renaksi_id || index_renaksi}>
                                                 <td colSpan={5} className="border-r border-b px-6 py-4">Renaksi {index_renaksi + 1}: {renaksi.renaksi}</td>
                                                 <td className="border-r border-b px-6 py-4">Rp.{formatRupiah(renaksi.anggaran || 0)}</td>
+                                                <td className="border-r border-b px-6 py-4">-</td>
                                             </tr>
                                         ))
                                     }
@@ -268,6 +312,11 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                     ))
                 }
             </table>
+            <ModalUploadRincianBelanja 
+                isOpen={ModalOpen}
+                onClose={() => setModalOpen(false)}
+                onSuccess={() => setFetchTrigger((prev) => !prev)}
+            />
         </div>
     )
 }
