@@ -61,6 +61,8 @@ const LaporanRincianBelanja = () => {
                             <TableLaporan
                                 role={User?.roles}
                                 tahun={Tahun?.value}
+                                user_id={User?.pegawai_id}
+                                nama_pegawai={User?.nama_pegawai}
                                 kode_opd={(User?.roles == 'super_admin' || User?.roles == 'reviewer') ? SelectedOpd?.value : User?.kode_opd}
                             />
                         :
@@ -73,6 +75,8 @@ const LaporanRincianBelanja = () => {
                                 role={User?.roles}
                                 nip={User?.nip}
                                 tahun={Tahun?.value}
+                                user_id={User?.pegawai_id}
+                                nama_pegawai={User?.nama_pegawai}
                                 kode_opd={User?.kode_opd}
                             />
                     }

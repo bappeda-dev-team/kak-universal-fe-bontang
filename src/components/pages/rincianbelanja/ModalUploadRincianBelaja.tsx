@@ -14,15 +14,23 @@ import { LoadingButtonClip2 } from "@/components/global/Loading";
 interface modal {
     isOpen: boolean;
     onClose: () => void;
-    id?: string;
+    user_id: string;
+    kode_opd: string;
+    tahun: string;
+    kode_subkegiatan: string;
+    nama_pegawai: string;
     onSuccess: () => void;
 }
 interface FormValue {
-    anggaran: number;
-    file: File;
+    file: File[];
+    user_id: string;
+    tahun: string;
+    nama?: string;
+    kode_opd: string;
+    kode_subkegiatan: string;
 }
 
-export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, id, onSuccess }) => {
+export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, user_id, kode_opd, nama_pegawai, tahun, kode_subkegiatan, onSuccess }) => {
 
     const {
         control,
@@ -32,27 +40,40 @@ export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, id
     } = useForm<FormValue>();
 
     const [Proses, setProses] = useState<boolean>(false);
-    const [LoadingOption, setLoadingOption] = useState<boolean>(false);
-    
-    const [User, setUser] = useState<any>(null);
-    const token = getToken();
-    const { branding } = useBrandingContext();
-
-    useEffect(() => {
-        const fetchUser = getUser();
-        if (fetchUser) {
-            setUser(fetchUser.user);
-        }
-    }, []);
 
     const onSubmit: SubmitHandler<FormValue> = async (data) => {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL_PERMASALAHAN;
-        const formData = {
-            //key : value
-            anggaran: data.anggaran,
-            file: data.file
-        };
-        console.log(formData);
+        const url_pdf = "https://kab-bontang-upload.zeabur.app"
+        const formData = new FormData();
+
+        formData.append('file', data.file[0]);
+        formData.append('user_id', user_id);
+        formData.append('tahun', tahun);
+        formData.append('nama', nama_pegawai);
+        formData.append('kode_opd', kode_opd);
+        formData.append('kode_subkegiatan', kode_subkegiatan);
+
+        // console.log(formData);
+         try {
+            setProses(true);
+            const response = await fetch(`${url_pdf}/upload`, {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+            if (result.ok) {
+                console.log(result);
+                AlertNotification("Berhasil", "file berhasil di upload", "success", 2000);
+                onSuccess();
+            } else {
+                console.log(result);
+                AlertNotification("Gagal", `${result}`, "error", 2000);
+            }
+        } catch (err) {
+            console.error(err);
+            AlertNotification("Gagal", "cek koneksi internet, terdapat kesalahan server/backend, jika terus berlanjut hubungi tim developer", "error", 2000);
+        } finally {
+            setProses(false);
+        }
     };
 
     const handleClose = () => {
@@ -82,8 +103,9 @@ export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, id
                         </label>
                         <Controller
                             name="file"
+                            rules={{ required: "file harus terisi" }}
                             control={control}
-                            render={({ field: {onBlur, onChange, ref} }) => (
+                            render={({ field: { onBlur, onChange, ref } }) => (
                                 <input
                                     className="border px-4 py-2 rounded-lg"
                                     id="file"
@@ -95,39 +117,18 @@ export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, id
                             )}
                         />
                     </div>
-                    <div className="flex flex-col py-3">
-                        <label
-                            className="uppercase text-xs font-bold text-gray-700 my-2"
-                            htmlFor="anggaran"
-                        >
-                            Total Anggaran (Rp.):
-                        </label>
-                        <Controller
-                            name="anggaran"
-                            control={control}
-                            render={({ field }) => (
-                                <input
-                                    {...field}
-                                    className="border px-4 py-2 rounded-lg"
-                                    id="anggaran"
-                                    type="text"
-                                    placeholder="masukkan Total Pagu Anggaran di sub kegiatan ini"
-                                    onChange={(e) => {
-                                        field.onChange(e);
-                                    }}
-                                />
-                            )}
-                        />
-                    </div>
                     <div className="flex flex-col gap-2 my-3">
                         <ButtonSky className="w-full" type="submit" disabled={Proses}>
                             {Proses ?
-                                <span className="flex">
+                                <span className="flex items-center gap-1">
                                     <LoadingButtonClip2 />
                                     Uploading...
                                 </span>
                                 :
-                                "Upload"
+                                <span className="flex items-center gap-1">
+                                    <TbUpload />
+                                    Upload
+                                </span>
                             }
                         </ButtonSky>
                         <ButtonRed className="w-full" onClick={handleClose}>
@@ -136,6 +137,6 @@ export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, id
                     </div>
                 </form>
             </Modal>
-    )
+        )
     }
 }

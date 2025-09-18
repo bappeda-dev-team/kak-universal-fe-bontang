@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
-import { ButtonBlackBorder, ButtonGreen, ButtonGreenBorder, ButtonRedBorder, ButtonSkyBorder } from "@/components/global/Button";
-import { TbEye, TbBook, TbKeyFilled, TbPencil, TbPrinter, TbReceipt, TbUpload, TbTrash } from "react-icons/tb";
+import { ButtonRedBorder, ButtonSkyBorder } from "@/components/global/Button";
+import { TbUpload, TbTrash } from "react-icons/tb";
 import { ModalUploadRincianBelanja } from "./ModalUploadRincianBelaja";
+import { AlertNotification } from "@/components/global/Alert";
 import { getToken } from "@/components/lib/Cookie";
 import { OpdTahunNull, TahunNull } from "@/components/global/OpdTahunNull";
 import { LoadingClip } from "@/components/global/Loading";
@@ -15,6 +16,8 @@ interface TableLaporan {
     nama_opd?: string;
     nip?: string;
     role: string;
+    user_id: string;
+    nama_pegawai: string;
 }
 interface Target {
     id_target: string;
@@ -63,12 +66,34 @@ interface LaporanRincianBelanja {
     rincian_belanja: RincianBelanja[];
 }
 
-export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd, nip, role }) => {
+interface Document {
+    id: number;
+    user_id: string;
+    nama: string;
+    kode_subkegiatan: string;
+    kode_opd: string;
+    file_name: string;
+    file_url: string;
+    filesize: number;
+    content_type: string;
+    tahun: number;
+    created_at: string;
+}
+
+type GabunganLaporan = LaporanRincianBelanja & Document;
+
+export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd, nama_pegawai, user_id, nip, role }) => {
 
     const [Laporan, setLaporan] = useState<LaporanRincianBelanja[]>([]);
     const [ModalOpen, setModalOpen] = useState<boolean>(false);
     const [FetchTrigger, setFetchTrigger] = useState<boolean>(false);
     const [Bt, setBt] = useState<boolean>(false);
+
+    const [DataPDF, setDataPDF] = useState<Document[]>([]);
+    const [SessionId, setSessionId] = useState<string>("");
+    const [FetchLaporan, setFetchLaporan] = useState<boolean>(false);
+    const [LoadingLaporanPDF, setLoadingLaporanPDF] = useState<boolean>(false);
+    const [SubKegiatan, setSubKegiatan] = useState<string>("");
 
     const [Loading, setLoading] = useState<boolean>(false);
     const [Error, setError] = useState<boolean>(false);
@@ -94,14 +119,17 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                         setLaporan([]);
                         setDataNull(true);
                         setError(false);
+                        setFetchLaporan(true);
                     } else {
                         setLaporan(data);
                         setDataNull(false);
                         setError(false);
+                        setFetchLaporan(true);
                     }
                 } else {
                     setDataNull(false);
                     setError(true);
+                    setFetchLaporan(false);
                 }
             } catch (err) {
                 setDataNull(false);
@@ -122,6 +150,75 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
         }
     }, [role, kode_opd, nip, tahun, token, FetchTrigger]);
 
+    useEffect(() => {
+        const url = 'https://testapi.kertaskerja.cc';
+        const payload = {
+            username: "admin_test",
+            password: "TEST_ONLY"
+        }
+        const login = async () => {
+            try {
+                setLoadingLaporanPDF(true);
+                const response = await fetch(`${url}/auth/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    setSessionId(result.sessionId);
+                }
+            } catch (err) {
+                console.error(err);
+                setLoadingLaporanPDF(false);
+            } finally {
+                const getFilePDF = async () => {
+                    const url_pdf = "https://kab-bontang-upload.zeabur.app"
+                    try {
+                        setLoadingLaporanPDF(true);
+                        const response = await fetch(`${url_pdf}/files?kode_opd=${kode_opd}&tahun=${tahun}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        });
+                        const result = await response.json();
+                        if (response.ok) {
+                            setDataPDF(result);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        setLoadingLaporanPDF(false);
+                    }
+                }
+                getFilePDF();
+            }
+        }
+        if (FetchLaporan === true) {
+            login();
+        }
+    }, [kode_opd, tahun, FetchLaporan]);
+
+    const hasilGabungan = Laporan.map((itemPertama) => {
+        const itemKedua = DataPDF.find(
+            (item) => item.kode_subkegiatan === itemPertama.kode_subkegiatan
+        );
+
+        if (itemKedua) {
+            return {
+                ...itemPertama,
+                ...itemKedua,
+            };
+        }
+
+        return itemPertama;
+    });
+
+    const gabunganLaporanFinal = hasilGabungan as GabunganLaporan[];
+
     function formatRupiah(angka: number) {
         if (typeof angka !== 'number') {
             return String(angka); // Jika bukan angka, kembalikan sebagai string
@@ -129,7 +226,40 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
         return angka.toLocaleString('id-ID'); // 'id-ID' untuk format Indonesia
     }
 
-    if (Loading) {
+    const handleModal = (kode: string) => {
+        if (ModalOpen) {
+            setModalOpen(false);
+            setSubKegiatan("");
+        } else {
+            setModalOpen(true);
+            setSubKegiatan(kode);
+        }
+    }
+
+    const hapusPdf = async (id: any) => {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL_CSF;
+        try {
+            const response = await fetch(`${API_URL}/csf/${id}`, {
+                method: "DELETE",
+                headers: {
+                    // Authorization: `${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                AlertNotification("Gagal", `${result.data}`, "error", 2000);
+                console.error(result);
+            } else {
+                AlertNotification("Berhasil", "Data CSF Berhasil dihapus", "success", 1000);
+                setFetchTrigger((prev) => !prev);
+            }
+        } catch (err) {
+            AlertNotification("Gagal", "cek koneksi internet atau database server", "error", 2000);
+        }
+    };
+
+    if (Loading || LoadingLaporanPDF) {
         return (
             <div className="w-full border p-5 rounded-xl shadow-xl">
                 <LoadingClip className="mx-5 py-5" />
@@ -178,7 +308,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                         </tr>
                     </tbody>
                     :
-                    Laporan.map((data: LaporanRincianBelanja, index: number) => (
+                    gabunganLaporanFinal.map((data: GabunganLaporan, index: number) => (
                         <tbody key={index}>
                             <tr className="bg-emerald-50 text">
                                 <td className="border-r border-b px-6 py-4">{index + 1}</td>
@@ -203,31 +333,36 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                 <td className="border-r border-b px-6 py-4">Rp.{formatRupiah(data.total_anggaran)}</td>
                                 <td className="border-r border-b px-6 py-4">
                                     <div className="flex flex-col justify-center items-center gap-2">
-                                        {Bt ? 
-                                            ((role == 'level_3' || role == 'super_admin') ? 
+                                        {!data.file_name ?
+                                            ((role == 'level_3' || role == 'super_admin') ?
                                                 <ButtonSkyBorder
                                                     className="flex items-center gap-1 w-full"
-                                                    onClick={() => setModalOpen(true)}
+                                                    onClick={() => handleModal(data.kode_subkegiatan)}
                                                 >
                                                     <TbUpload />
                                                     Upload
                                                 </ButtonSkyBorder>
                                                 :
                                                 "dokumen belum di tambahkan oleh pemilik"
-                                            )   
-                                        :
+                                            )
+                                            :
                                             <>
-                                                <div className={`border rounded-lg px-2 py-1 text-white bg-emerald-500`}>
-                                                    <p className="border-b">Rp. 3.000.000</p>
-                                                    <p className="font-light text-sm cursor-pointer hover:text-blue-200 italic">Contoh Nama File PDF.pdf</p>
-                                                </div>
-                                                {(role == 'level_3' || role == 'super_admin') ? 
+                                                <a
+                                                    className={`border rounded-lg px-2 py-1 border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white cursor-pointer`}
+                                                    href={data.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {/* <p className="border-b">Rp. 3.000.000</p> */}
+                                                    <p className="text-sm cursor-pointer italic">{data.file_name || "-"}</p>
+                                                </a>
+                                                {(role == 'level_3' || role == 'super_admin') ?
                                                     <ButtonRedBorder
                                                         className="flex items-center gap-1 w-full"
                                                         onClick={() => {
                                                             AlertQuestion("Hapus", "Hapus data anggaran dan file rincian belanja?", "question", "Hapus", "Batal").then((result) => {
-                                                                if(result.isConfirmed){
-
+                                                                if (result.isConfirmed) {
+                                                                    AlertNotification("Pengembangan", "fitur masih dalam pengembangan developer", "info", 3000);
                                                                 }
                                                             })
                                                         }}
@@ -235,7 +370,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                                         <TbTrash />
                                                         Hapus
                                                     </ButtonRedBorder>
-                                                :
+                                                    :
                                                     <></>
                                                 }
                                             </>
@@ -263,7 +398,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                                     <td className="border-r border-b px-6 py-4 text-center">-</td>
                                                 ) : (
                                                     rekin.indikator[0].targets.map((t: Target, index_t: number) => (
-                                                        <td key={t.id_target || index_t} className="border-r border-b px-6 py-4 text-center">{t.target || "-"} {t.satuan || "-"}</td>
+                                                        <td key={index_t} className="border-r border-b px-6 py-4 text-center">{t.target || "-"} {t.satuan || "-"}</td>
                                                     ))
                                                 )}
                                             </React.Fragment>
@@ -274,13 +409,13 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                     {/* Baris-baris untuk indikator selanjutnya */}
                                     {rekin.indikator ?
                                         rekin.indikator.slice(1).map((i: IndikatorRencanaKinerja, index_i) => (
-                                            <tr key={i.id_indikator || index_i}>
+                                            <tr key={index_i}>
                                                 <td className="border-r border-b px-6 py-4">{i.nama_indikator || "-"}</td>
                                                 {i.targets.length === 0 || i.targets === null ? (
                                                     <td className="border-r border-b px-6 py-4 text-center">-</td>
                                                 ) : (
                                                     i.targets.map((t: Target, index_t: number) => (
-                                                        <td key={t.id_target || index_t} className="border-r border-b px-6 py-4 text-center">{t.target || "-"} {t.satuan || "-"}</td>
+                                                        <td key={index_t} className="border-r border-b px-6 py-4 text-center">{t.target || "-"} {t.satuan || "-"}</td>
                                                     ))
                                                 )}
                                             </tr>
@@ -299,7 +434,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                         </tr>
                                         :
                                         rekin.rencana_aksi.map((renaksi: RencanaAksi, index_renaksi: number) => (
-                                            <tr key={renaksi.renaksi_id || index_renaksi}>
+                                            <tr key={index_renaksi}>
                                                 <td colSpan={5} className="border-r border-b px-6 py-4">Renaksi {index_renaksi + 1}: {renaksi.renaksi}</td>
                                                 <td className="border-r border-b px-6 py-4">Rp.{formatRupiah(renaksi.anggaran || 0)}</td>
                                                 <td className="border-r border-b px-6 py-4">-</td>
@@ -312,10 +447,15 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                     ))
                 }
             </table>
-            <ModalUploadRincianBelanja 
+            <ModalUploadRincianBelanja
                 isOpen={ModalOpen}
                 onClose={() => setModalOpen(false)}
                 onSuccess={() => setFetchTrigger((prev) => !prev)}
+                tahun={tahun}
+                user_id={user_id}
+                kode_opd={kode_opd}
+                kode_subkegiatan={SubKegiatan}
+                nama_pegawai={nama_pegawai}
             />
         </div>
     )
