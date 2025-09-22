@@ -53,17 +53,19 @@ export const ModalUploadRincianBelanja: React.FC<modal> = ({ isOpen, onClose, us
         formData.append('kode_subkegiatan', kode_subkegiatan);
 
         // console.log(formData);
-         try {
+        try {
             setProses(true);
             const response = await fetch(`${url_pdf}/upload`, {
                 method: "POST",
                 body: formData,
             });
             const result = await response.json();
-            if (result.ok) {
-                console.log(result);
+            if (response.ok) {
+                // console.log(result);
                 AlertNotification("Berhasil", "file berhasil di upload", "success", 2000);
-                onSuccess();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 console.log(result);
                 AlertNotification("Gagal", `${result}`, "error", 2000);

@@ -186,7 +186,11 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                         });
                         const result = await response.json();
                         if (response.ok) {
-                            setDataPDF(result);
+                            if(result === null){
+                                setDataPDF([]);
+                            } else {
+                                setDataPDF(result);
+                            }
                         }
                     } catch (err) {
                         console.error(err);
@@ -353,10 +357,10 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
-                                                    {/* <p className="border-b">Rp. 3.000.000</p> */}
                                                     <p className="text-sm cursor-pointer italic">{data.file_name || "-"}</p>
                                                 </a>
-                                                {(role == 'level_3' || role == 'super_admin') ?
+                                                    <p className="border-b">uploader : {data.nama || "-"}</p>
+                                                {/* {(role == 'level_3' || role == 'super_admin') ?
                                                     <ButtonRedBorder
                                                         className="flex items-center gap-1 w-full"
                                                         onClick={() => {
@@ -372,7 +376,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                                     </ButtonRedBorder>
                                                     :
                                                     <></>
-                                                }
+                                                } */}
                                             </>
                                         }
                                     </div>
