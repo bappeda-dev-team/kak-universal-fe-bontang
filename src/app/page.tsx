@@ -17,6 +17,8 @@ const Dashboard = () => {
     }
   }, [])
 
+  const manual_user = process.env.NEXT_PUBLIC_LINK_MANUAL_USER;
+
   return (
     <div className="flex flex-col gap-2">
       <h1 className="p-5 rounded-xl border border-emerald-500">Selamat Datang, {User?.nama_pegawai ? User?.nama_pegawai : 'di halaman dashboard'}</h1>
@@ -26,7 +28,7 @@ const Dashboard = () => {
           Download Panduan Website (Manual User)
         </h1>
         <Link
-          href="https://drive.google.com/drive/folders/1xFqVRchn8eCRtMLhWvqSb78qDxTXB9Y1?usp=sharing"
+          href={manual_user || "https://drive.google.com/drive/folders/1xFqVRchn8eCRtMLhWvqSb78qDxTXB9Y1?usp=sharing"}
           target="_blank"
           rel="noopener noreferrer"
         >
