@@ -186,7 +186,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                         });
                         const result = await response.json();
                         if (response.ok) {
-                            if(result === null){
+                            if (result === null) {
                                 setDataPDF([]);
                             } else {
                                 setDataPDF(result);
@@ -351,6 +351,17 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                             )
                                             :
                                             <>
+                                                {(role == 'level_3' || role == 'super_admin') ?
+                                                    <ButtonSkyBorder
+                                                        className="flex items-center gap-1 w-full"
+                                                        onClick={() => handleModal(data.kode_subkegiatan)}
+                                                    >
+                                                        <TbUpload />
+                                                        Upload
+                                                    </ButtonSkyBorder>
+                                                    :
+                                                    "dokumen belum di tambahkan oleh pemilik"
+                                                }
                                                 <a
                                                     className={`border rounded-lg px-2 py-1 border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white cursor-pointer`}
                                                     href={data.file_url}
@@ -359,24 +370,7 @@ export const TableLaporan: React.FC<TableLaporan> = ({ tahun, kode_opd, nama_opd
                                                 >
                                                     <p className="text-sm cursor-pointer italic">{data.file_name || "-"}</p>
                                                 </a>
-                                                    <p className="border-b">uploader : {data.nama || "-"}</p>
-                                                {/* {(role == 'level_3' || role == 'super_admin') ?
-                                                    <ButtonRedBorder
-                                                        className="flex items-center gap-1 w-full"
-                                                        onClick={() => {
-                                                            AlertQuestion("Hapus", "Hapus data anggaran dan file rincian belanja?", "question", "Hapus", "Batal").then((result) => {
-                                                                if (result.isConfirmed) {
-                                                                    AlertNotification("Pengembangan", "fitur masih dalam pengembangan developer", "info", 3000);
-                                                                }
-                                                            })
-                                                        }}
-                                                    >
-                                                        <TbTrash />
-                                                        Hapus
-                                                    </ButtonRedBorder>
-                                                    :
-                                                    <></>
-                                                } */}
+                                                <p className="border-b">uploader : {data.nama || "-"}</p>
                                             </>
                                         }
                                     </div>
