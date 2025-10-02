@@ -11,8 +11,7 @@ import {
   TbMessageReport, TbCalendar, TbHexagonLetterV, TbHexagonLetterM, TbClipboardText, TbZoomExclamation,
   TbFileAnalytics, TbListDetails, TbCalendarTime, TbAlertTriangle,
   TbAlertCircle, TbDatabasePlus, TbCalendarPlus, TbDeviceImacDollar, TbFocus2, TbHexagonLetterC, TbHexagonLetterO, TbHexagonLetterI,
-  TbBuildingCottage,
-  TbCalendarStar
+  TbBuildingCottage, TbCalendarStar, TbChartPie
 } from "react-icons/tb";
 import Image from 'next/image';
 import { usePathname, useParams } from 'next/navigation';
@@ -364,6 +363,12 @@ export const Sidebar = ({ isZoomed, isOpen, toggleSidebar }: SidebarProps) => {
                 <li className={`flex items-center gap-x-2 cursor-pointer p-2 rounded-xl transition-all duration-300 ease-in-out ${url === "/DataMaster/masterusulan" ? "bg-white text-gray-800" : "hover:bg-slate-500"}`}>
                   <TbApps className="text-xl" />
                   <span className={`${!isOpen && 'hidden'} origin-left duration-200`}>Master Usulan</span>
+                </li>
+              </Link>
+              <Link href="/DataMaster/programunggulan">
+                <li className={`flex items-center gap-x-2 cursor-pointer p-2 rounded-xl transition-all duration-300 ease-in-out ${url === "/DataMaster/programunggulan" ? "bg-white text-gray-800" : "hover:bg-slate-500"}`}>
+                  <TbChartPie className="text-xl" />
+                  <span className={`${!isOpen && 'hidden'} origin-left duration-200`}>Program Unggulan</span>
                 </li>
               </Link>
               {/* LABEL MASTER PROGRAM KEGIATAN */}
