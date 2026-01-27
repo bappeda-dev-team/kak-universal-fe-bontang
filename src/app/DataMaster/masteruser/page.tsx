@@ -1,10 +1,16 @@
+'use client'
+
 import Table from "@/components/pages/datamaster/masteruser/Table";
-import { ButtonSky } from "@/components/global/Button";
-import { TbCirclePlus } from "react-icons/tb";
+import { ButtonSky, ButtonBlack } from "@/components/global/Button";
+import { useRouter } from "next/navigation";
+import { TbCirclePlus, TbUsers } from "react-icons/tb";
 import { FiHome } from "react-icons/fi";
 
 const masteruser = () => {
-    return(
+
+    const router = useRouter();
+    
+    return (
         <>
             <div className="flex items-center">
                 <a href="/" className="mr-1"><FiHome /></a>
@@ -16,14 +22,21 @@ const masteruser = () => {
                     <div className="flex flex-col items-end">
                         <h1 className="uppercase font-bold">Daftar User</h1>
                     </div>
-                    <div className="flex flex-col">
-                        <ButtonSky 
+                    <div className="flex flex-col gap-1">
+                        <ButtonSky
                             className="flex items-center justify-center"
                             halaman_url='/DataMaster/masteruser/tambah'
                         >
-                            <TbCirclePlus className="mr-1"/>
+                            <TbCirclePlus className="mr-1" />
                             Tambah User
                         </ButtonSky>
+                        <ButtonBlack
+                            className="flex items-center gap-1"
+                            onClick={() => router.push("/DataMaster/masteruser/user-admin-opd")}
+                        >
+                            <TbUsers />
+                            Daftar Admin OPD
+                        </ButtonBlack>
                     </div>
                 </div>
                 <Table />
