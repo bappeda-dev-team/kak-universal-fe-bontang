@@ -286,13 +286,13 @@ export const TablePerencanaan = () => {
                                                 <TbPencil className="mr-1" />
                                                 Edit Rekin
                                             </ButtonSkyBorder>
-                                            {(user?.roles == 'level_3' || user?.roles == 'level_4') &&
+                                            {(user?.roles == 'level_2' || user?.roles == 'level_3' || user?.roles == 'level_4') &&
                                                 <ButtonGreenBorder
                                                     className="w-full"
                                                     halaman_url={`/rencanakinerja/${data.id_rencana_kinerja}`}
                                                 >
                                                     <TbPencilDown className="mr-1" />
-                                                    {user?.roles == 'level_4' ?
+                                                    {user?.roles == "level_2" || user?.roles == 'level_4' ?
                                                         "Renaksi"
                                                         :
                                                         "Rincian"

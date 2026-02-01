@@ -47,7 +47,7 @@ const RincianRencanaKinerja = () => {
                 <p className="mr-1">/ Rencana Kinerja</p>
                 <p>/ Nama sub kegiatan</p>
             </div>
-            {User?.roles != 'level_4' ?
+            {(User?.roles != "level_2" && User?.roles != 'level_4') ?
                 <>
                     <div className="my-5">
                         {/* status sasaran */}
