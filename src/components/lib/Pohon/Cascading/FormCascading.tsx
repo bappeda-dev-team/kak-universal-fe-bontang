@@ -356,7 +356,8 @@ export const FormEditCascading: React.FC<{
                                                             } else if (level === 5) {
                                                                 fetchPelaksana('level_2');
                                                             } else if (level === 6) {
-                                                                fetchPelaksana3dan4();
+                                                                fetchPelaksana('level_3');
+                                                                // fetchPelaksana3dan4();
                                                             } else if (level >= 7) {
                                                                 fetchPelaksana('level_4');
                                                             } else {
