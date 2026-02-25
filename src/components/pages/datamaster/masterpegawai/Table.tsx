@@ -1,13 +1,15 @@
 'use client'
 
-import { ButtonGreen, ButtonRed } from "@/components/global/Button";
+import { ButtonBlack, ButtonGreen, ButtonRed, ButtonSky } from "@/components/global/Button";
 import { useState, useEffect } from "react";
 import { LoadingClip } from "@/components/global/Loading";
 import { AlertNotification, AlertQuestion } from "@/components/global/Alert";
 import { getToken } from "@/components/lib/Cookie";
 import Select from 'react-select';
 import { useBrandingContext } from "@/context/BrandingContext";
-import { TbSearch } from "react-icons/tb";
+import { TbSearch, TbCirclePlus } from "react-icons/tb";
+import { ModalMasterPegawai } from "./ModalMasterPegawai";
+import { ModalJabatanPegawai } from "./ModalJabatanPegawai";
 
 interface OptionTypeString {
     value: string;
@@ -19,6 +21,8 @@ interface pegawai {
     nip: string;
     kode_opd: string;
     nama_opd: string;
+    id_jabatan: string;
+    nama_jabatan: string;
 }
 
 const Table = () => {
@@ -34,6 +38,39 @@ const Table = () => {
     const [IsLoading, setIsLoading] = useState<boolean>(false);
     const [LoadingOpd, setLoadingOpd] = useState<boolean>(false);
     const token = getToken();
+
+    const [ModalOpen, setModalOpen] = useState<boolean>(false);
+    const [ModalJabatanOpen, setModalJabatanOpen] = useState<boolean>(false);
+    const [DataModal, setDataModal] = useState<pegawai | null>(null);
+    const [JenisModal, setJenisModal] = useState<"tambah" | "edit">("tambah");
+    const [NamaOpd, setNamaOpd] = useState<string>("");
+    const [KodeOpd, setKodeOpd] = useState<string>("");
+    const [FetchTrigger, setFetchTrigger] = useState<boolean>(false);
+
+    const handleModal = (jenis: "tambah" | "edit", Data: pegawai | null, nama_opd: string, kode_opd: string) => {
+        if (ModalOpen) {
+            setModalOpen(false);
+            setJenisModal(jenis);
+            setDataModal(Data);
+            setNamaOpd(nama_opd);
+            setKodeOpd(kode_opd);
+        } else {
+            setModalOpen(true);
+            setJenisModal(jenis);
+            setDataModal(Data);
+            setNamaOpd(nama_opd);
+            setKodeOpd(kode_opd);
+        }
+    }
+    const handleModalJabatan = (Data: pegawai | null) => {
+        if(ModalJabatanOpen){
+            setModalJabatanOpen(false);
+            setDataModal(Data);
+        } else {
+            setModalJabatanOpen(true);
+            setDataModal(Data);
+        }
+    }
 
     useEffect(() => {
         if (branding?.opd?.value != undefined) {
@@ -85,8 +122,9 @@ const Table = () => {
         }
         if (Opd?.value != undefined) {
             fetchPegawai();
+            setSearchQuery("");
         }
-    }, [token, Opd, branding]);
+    }, [token, Opd, branding, FetchTrigger]);
 
     const FilteredData = Pegawai?.filter((item: pegawai) => {
         const params = searchQuery.toLowerCase();
@@ -192,91 +230,140 @@ const Table = () => {
 
     return (
         <>
-            <div className="flex flex-wrap gap-2 items-center uppercase px-3 py-2">
-                <Select
-                    styles={{
-                        control: (baseStyles) => ({
-                            ...baseStyles,
-                            borderRadius: '8px',
-                            minWidth: '320px',
-                            maxWidth: '700px',
-                            minHeight: '30px'
-                        })
-                    }}
-                    onChange={(option) => setOpd(option)}
-                    options={OpdOption}
-                    placeholder="Filter by OPD"
-                    isClearable
-                    value={Opd}
-                    isLoading={IsLoading}
-                    isSearchable
-                    onMenuOpen={() => {
-                        if (OpdOption.length == 0) {
-                            fetchOpd();
-                        }
-                    }}
-                />
-                <div className="flex px-2 items-center">
-                    <TbSearch className="absolute ml-4 text-slate-500" />
-                    <input
-                        type="text"
-                        placeholder="Cari nama pegawai / NIP"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="py-2 pl-10 pr-2 border rounded-lg border-gray-300"
-                    />
+            <div className="mt-3 rounded-xl shadow-lg border">
+                <div className="flex items-center justify-between border-b px-5 py-5">
+                    <div className="flex flex-col items-end">
+                        <h1 className="uppercase font-bold">Daftar Pegawai</h1>
+                    </div>
+                    <div className="flex flex-col">
+                        <ButtonSky
+                            className="flex items-center justify-center"
+                            onClick={() => handleModal("tambah", null, Opd?.label ?? "", Opd?.value ?? "")}
+                        >
+                            <TbCirclePlus className="mr-1" />
+                            Tambah Pegawai
+                        </ButtonSky>
+                    </div>
                 </div>
-            </div>
-            <div className="overflow-auto mx-3 my-2 rounded-t-xl border">
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-[#99CEF5] text-white">
-                            <th className="border-r border-b px-6 py-3 min-w-[50px]">No</th>
-                            <th className="border-r border-b px-6 py-3 min-w-[200px]">Nama</th>
-                            <th className="border-r border-b px-6 py-3 min-w-[200px]">NIP</th>
-                            <th className="border-r border-b px-6 py-3 min-w-[100px]">Kode OPD</th>
-                            <th className="border-r border-b px-6 py-3 min-w-[300px]">Perangkat Daerah</th>
-                            <th className="border-l border-b px-6 py-3 min-w-[100px]">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {DataNull || FilteredData.length === 0 ?
-                            <tr>
-                                <td className="px-6 py-3 uppercase" colSpan={13}>
-                                    Data Kosong / Belum Ditambahkan
-                                </td>
+                <div className="flex flex-wrap gap-2 items-center uppercase px-3 py-2">
+                    <Select
+                        styles={{
+                            control: (baseStyles) => ({
+                                ...baseStyles,
+                                borderRadius: '8px',
+                                minWidth: '320px',
+                                maxWidth: '700px',
+                                minHeight: '30px'
+                            })
+                        }}
+                        onChange={(option) => setOpd(option)}
+                        options={OpdOption}
+                        placeholder="Filter by OPD"
+                        isClearable
+                        value={Opd}
+                        isLoading={IsLoading}
+                        isSearchable
+                        onMenuOpen={() => {
+                            if (OpdOption.length == 0) {
+                                fetchOpd();
+                            }
+                        }}
+                    />
+                    <div className="flex px-2 items-center">
+                        <TbSearch className="absolute ml-4 text-slate-500" />
+                        <input
+                            type="text"
+                            placeholder="Cari nama pegawai / NIP"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="py-2 pl-10 pr-2 border rounded-lg border-gray-300"
+                        />
+                    </div>
+                </div>
+                <div className="overflow-auto mx-3 my-2 rounded-t-xl border">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-[#99CEF5] text-white">
+                                <th className="border-r border-b px-6 py-3 min-w-[50px]">No</th>
+                                <th className="border-r border-b px-6 py-3 min-w-[200px]">Nama</th>
+                                <th className="border-r border-b px-6 py-3 min-w-[200px]">NIP</th>
+                                <th className="border-r border-b px-6 py-3 min-w-[200px]">Jabatan</th>
+                                <th className="border-r border-b px-6 py-3 min-w-[100px]">Kode OPD</th>
+                                <th className="border-r border-b px-6 py-3 min-w-[300px]">Perangkat Daerah</th>
+                                <th className="border-l border-b px-6 py-3 min-w-[100px]">Aksi</th>
                             </tr>
-                            :
-                            FilteredData.map((data, index) => (
-                                <tr key={data?.id}>
-                                    <td className="border-r border-b px-6 py-4">{index + 1}</td>
-                                    <td className="border-r border-b px-6 py-4">{data?.nama_pegawai ? data.nama_pegawai : "-"}</td>
-                                    <td className="border-r border-b px-6 py-4">{data?.nip ? data.nip : "-"}</td>
-                                    <td className="border-r border-b px-6 py-4">{data?.kode_opd ? data.kode_opd : "-"}</td>
-                                    <td className="border-r border-b px-6 py-4">{data?.nama_opd ? data.nama_opd : "-"}</td>
-                                    <td className="border-r border-b px-6 py-4">
-                                        <div className="flex flex-col jutify-center items-center gap-2">
-                                            <ButtonGreen className="w-full" halaman_url={`/DataMaster/masterpegawai/${data.id}`}>Edit</ButtonGreen>
-                                            <ButtonRed
-                                                className="w-full"
-                                                onClick={() => {
-                                                    AlertQuestion("Hapus?", "Hapus Pegawai yang dipilih?", "question", "Hapus", "Batal").then((result) => {
-                                                        if (result.isConfirmed) {
-                                                            hapusPegawai(data.id);
-                                                        }
-                                                    });
-                                                }}
-                                            >
-                                                Hapus
-                                            </ButtonRed>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {DataNull || FilteredData.length === 0 ?
+                                <tr>
+                                    <td className="px-6 py-3 uppercase" colSpan={13}>
+                                        Data Kosong / Belum Ditambahkan
                                     </td>
                                 </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
+                                :
+                                FilteredData.map((data, index) => (
+                                    <tr key={data?.id}>
+                                        <td className="border-r border-b px-6 py-4">{index + 1}</td>
+                                        <td className="border-r border-b px-6 py-4">{data?.nama_pegawai ? data.nama_pegawai : "-"}</td>
+                                        <td className="border-r border-b px-6 py-4 text-center">{data?.nip ? data.nip : "-"}</td>
+                                        <td className="border-r border-b px-6 py-4 text-center">{data?.nama_jabatan ? data.nama_jabatan : "-"}</td>
+                                        <td className="border-r border-b px-6 py-4">{data?.kode_opd ? data.kode_opd : "-"}</td>
+                                        <td className="border-r border-b px-6 py-4">{data?.nama_opd ? data.nama_opd : "-"}</td>
+                                        <td className="border-r border-b px-6 py-4">
+                                            <div className="flex flex-col jutify-center items-center gap-2">
+                                                <ButtonGreen
+                                                    className="w-full"
+                                                    onClick={() => handleModal("edit", data, data?.nama_opd, data?.kode_opd)}
+                                                >
+                                                    Edit
+                                                </ButtonGreen>
+                                                <ButtonBlack
+                                                    className="w-full"
+                                                    onClick={() => handleModalJabatan(data)}
+                                                >
+                                                    Jabatan
+                                                </ButtonBlack>
+                                                <ButtonRed
+                                                    className="w-full"
+                                                    onClick={() => {
+                                                        AlertQuestion("Hapus?", "Hapus Pegawai yang dipilih?", "question", "Hapus", "Batal").then((result) => {
+                                                            if (result.isConfirmed) {
+                                                                hapusPegawai(data.id);
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    Hapus
+                                                </ButtonRed>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
+            {ModalOpen &&
+                <ModalMasterPegawai
+                    isOpen={ModalOpen}
+                    onClose={() => handleModal("tambah", null, "", "")}
+                    onSuccess={() => setFetchTrigger((prev) => !prev)}
+                    Data={DataModal}
+                    jenis={JenisModal}
+                    kode_opd={KodeOpd}
+                    nama_opd={NamaOpd}
+                />
+            }
+            {ModalJabatanOpen &&
+                <ModalJabatanPegawai
+                    onClose={() => handleModalJabatan(null)}
+                    isOpen={ModalJabatanOpen}
+                    onSuccess={() => setFetchTrigger((prev) => !prev)}
+                    Data={DataModal}
+                    kode_opd={Opd?.value ?? ""}
+                />
+            }
         </>
     )
 }
