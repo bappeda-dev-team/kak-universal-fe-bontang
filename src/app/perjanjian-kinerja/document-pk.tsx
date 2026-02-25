@@ -133,7 +133,7 @@ const DocumentPk: React.FC<DocumentProps> = ({ branding, data }) => {
           {data.nama_opd}
         </Text>
         <Text style={[styles.heading2, styles.marginBottom]}>
-          {data.tahun}
+          Tahun {data.tahun}
         </Text>
 
         <Text style={styles.paragraph}>
