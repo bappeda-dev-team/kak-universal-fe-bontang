@@ -84,6 +84,47 @@ export const getUser = () => {
   }
 }
 
+type SelectedValue = {
+  value: any
+  label?: string
+}
+
+type OpdTahunResult = {
+  tahun: SelectedValue | null
+  opd: SelectedValue | null
+  roles: string[] | null
+}
+
+export const getOpdTahunNew = (): OpdTahunResult => {
+  try {
+    const tahunCookie = getCookie("tahun")
+    const opdCookie = getCookie("opd")
+    const userCookie = getCookie("user")
+
+    const tahun = tahunCookie ? JSON.parse(tahunCookie) : null
+    const user = userCookie ? JSON.parse(userCookie) : null
+    const roles = user?.roles ?? null
+
+    // DEFAULT
+    let opd: SelectedValue | null = null
+
+    if (roles.some((r: string) => ['super_admin'].includes(r))) {
+      // super admin pilih dari dropdown → cookie opd
+      opd = opdCookie ? JSON.parse(opdCookie) : null
+    } else {
+      // selain super admin → opd dari user
+      opd = user?.kode_opd
+        ? { value: user.kode_opd }
+        : null
+    }
+
+    return { tahun, opd, roles }
+  } catch (err) {
+    console.error("getOpdTahun error:", err)
+    return { tahun: null, opd: null, roles: null }
+  }
+}
+
 export const getToken = () => {
   const get_Token = getCookie("token")
   if (get_Token) {

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { TbCirclePlus, TbUsers } from "react-icons/tb";
 import { FiHome } from "react-icons/fi";
 
-const masteruser = () => {
+const MasterUser = () => {
 
     const router = useRouter();
     
@@ -45,4 +45,4 @@ const masteruser = () => {
     )
 }
 
-export default masteruser;
+export default MasterUser;
