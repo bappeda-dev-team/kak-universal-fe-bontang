@@ -1,6 +1,11 @@
-import { View, Text, StyleSheet } from '@react-pdf/renderer';
+import React from 'react';
+import { View, Text, StyleSheet, Font } from '@react-pdf/renderer';
 
-interface TTD {
+Font.registerHyphenationCallback(word => [word]);
+Font.register({ family: 'Times-Roman', src: '/font/times.ttf', fontStyle: 'normal', fontWeight: 'normal' });
+
+// Ubah nama interface agar tidak bentrok dengan nama komponen
+interface TTDProps {
   nama: string | null;
   nip: string | null;
   pihak: string;
@@ -8,125 +13,101 @@ interface TTD {
 }
 
 const styles = StyleSheet.create({
-  // Gaya untuk container utama (mirip flex flex-col justify-center text-center)
-  container: {
-    flexDirection: 'column', // 'flex-col'
-    justifyContent: 'center', // 'justify-center' (vertikal karena flexDirection: 'column')
-    alignItems: 'center',     // 'text-center' (horizontal karena flexDirection: 'column')
-    textAlign: 'center',      // Pastikan teks di dalam Text juga di tengah
+  // Kontainer utama untuk satu blok tanda tangan
+  signatureBlock: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    fontFamily: "Times-Roman",
+    textAlign: 'center',
+    width: 200, // Memberikan lebar pasti agar teks tahu kapan harus 'wrap'
   },
-  // Gaya untuk tanggal (opacity)
   tanggalText: {
-    fontSize: 11, // Atur ukuran font jika diperlukan
+    fontSize: 10,
+    marginBottom: 4,
   },
-  // Gaya untuk spasi kosong (mirip p-12)
-  spacer: {
-    padding: 35, // 12 unit Tailwind defaultnya 12 * 4 = 48px
+  jabatanText: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold', // Gunakan font bold standar
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 1.2,
   },
-  // Gaya untuk teks di bagian bawah (nama dan NIP)
-  bottomTextContainer: {
-    justifyContent: 'center',
-    textAlign: 'center', // Agar teks di dalamnya tetap di tengah
-  },
-  nameText: {
-    textTransform: 'uppercase', // 'uppercase'
-    fontSize: 12, // 'text-base' (kira-kira)
-    fontWeight: 'bold', // 'font-bold'
-    textDecoration: 'underline', // 'underline'
-    marginBottom: 2, // Spasi antara nama dan NIP jika diperlukan
-  },
-  nipText: {
-    textTransform: 'uppercase', // 'uppercase'
-    fontSize: 11, // 'text-base'
-    fontWeight: 'bold', // 'font-bold'
-  },
-  // Gaya untuk opacity, akan diterapkan secara kondisional
   opacityZero: {
     opacity: 0,
   },
   opacityFull: {
     opacity: 1,
   },
-  fontBold: {
-    fontWeight: 'bold',
+  container: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    width: 210, // Memberi batas lebar agar teks turun ke bawah (wrap)
   },
-  formatKota: {
-    fontSize: 14,
-    textTransform: 'capitalize',
+  pihakContainer: {
+    // Memberikan tinggi minimal agar nama di bawah tetap sejajar 
+    // meskipun teks 'pihak' cuma 1 baris atau 3 baris.
+    minHeight: 50,
+    justifyContent: 'flex-start',
+    marginBottom: 5,
+  },
+  pihakText: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
     fontWeight: 'bold',
     textAlign: 'center',
-  }
+    lineHeight: 1.3,
+  },
+  spacer: {
+    height: 40, // Ruang tanda tangan yang konsisten
+  },
+  nameText: {
+    textTransform: 'uppercase',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textDecoration: 'underline',
+    marginBottom: 2,
+  },
+  nipText: {
+    textTransform: 'uppercase', // 'uppercase'
+    fontSize: 11, // 'text-base'
+    fontWeight: 'bold', // 'font-bold'
+  },
 });
 
-const TTD: React.FC<TTD> = ({ pihak, nama, nip, tanggal }) => {
-
+const TTD: React.FC<TTDProps> = ({ pihak, nama, nip, tanggal }) => {
   const today = new Date();
+  const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
 
-  const year = today.getFullYear(); // Contoh: 2025
-  const month_number = today.getMonth() + 1; // Contoh: 7 (untuk Juli)
-  let month_string = ""
-  switch (month_number) {
-    case 1:
-      month_string = "Januari";
-      break;
-    case 2:
-      month_string = "Februari";
-      break;
-    case 3:
-      month_string = "Maret";
-      break;
-    case 4:
-      month_string = "April";
-      break;
-    case 5:
-      month_string = "Mei";
-      break;
-    case 6:
-      month_string = "Juni";
-      break;
-    case 7:
-      month_string = "Juli";
-      break;
-    case 8:
-      month_string = "Agustus";
-      break;
-    case 9:
-      month_string = "September";
-      break;
-    case 10:
-      month_string = "Oktober";
-      break;
-    case 11:
-      month_string = "November";
-      break;
-    case 12:
-      month_string = "Desember";
-      break;
-    default:
-      month_string = "Bulan tidak valid";
-  }
-  const day = today.getDate(); // Contoh: 21
-
-  const formattedDate = `${day} ${month_string} ${year}`; // "21/7/2025" (format DD/MM/YYYY)
-
-  const namaKota = process.env.NEXT_PUBLIC_CLIENT_NAME || "";
+  const formattedDate = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+  const namaKota = process.env.NEXT_PUBLIC_CLIENT_NAME || "Semarang";
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.formatKota, styles.tanggalText, tanggal ? styles.opacityFull : styles.opacityZero]}>
-        {namaKota.toLowerCase()}, {formattedDate}
+      {/* Baris Kota & Tanggal */}
+      <Text style={[styles.tanggalText, tanggal ? styles.opacityFull : styles.opacityZero]}>
+        {namaKota}, {formattedDate}
       </Text>
-      <Text style={[styles.tanggalText, styles.fontBold]}>{pihak || "pihak"},</Text>
 
-      <View style={styles.spacer}></View> {/* Spasi kosong */}
+      {/* Kontainer Pihak/Jabatan */}
+      <View style={styles.pihakContainer}>
+        <Text style={styles.pihakText}>{pihak || "Pihak"},</Text>
+      </View>
 
+      {/* Ruang Tanda Tangan */}
+      <View style={styles.spacer} />
+
+      {/* Nama dan NIP */}
       <View style={styles.container}>
         <Text style={styles.nameText}>{nama || "-"}</Text>
-        <Text style={styles.nipText}>NIP {nip || "-"}</Text>
+        <Text style={styles.nipText}>NIP. {nip || "-"}</Text>
       </View>
     </View>
   );
 }
-
 
 export default TTD;

@@ -1,38 +1,43 @@
 import React from 'react';
 import { View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Font } from '@react-pdf/renderer';
 
-interface NamaJabatan {
+// Ubah nama interface agar tidak bentrok dengan nama komponen
+interface NamaJabatanProps {
   nama: string | null;
   jabatan: string | null;
 }
 
+Font.register({ family: 'Times-Roman', src: '/font/times.ttf', fontStyle: 'normal', fontWeight: 'normal' });
+
 const styles = StyleSheet.create({
-  // Gaya untuk setiap baris (mirip <tr>)
   container: {
     marginBottom: 10,
     marginLeft: 15,
+    paddingRight: 15,
     fontSize: 11,
-    lineHeight: 1.5,
+    fontFamily: "Times-Roman",
+    lineHeight: 1.4, // Sedikit dikurangi agar tidak terlalu renggang saat wrap
   },
   tableRow: {
-    flexDirection: 'row', // Mengatur item dalam baris secara horizontal
-    marginBottom: 2, // Memberi sedikit spasi antar baris
+    flexDirection: 'row',
+    // alignItems: 'flex-start' sangat penting agar "Jabatan" tetap di atas 
+    // meskipun isi jabatan di kolom 3 sangat panjang (berbaris-baris)
+    alignItems: 'flex-start', 
+    marginBottom: 4, 
   },
-  // Gaya untuk kolom pertama (mirip <td> dengan className="k-1")
   column1: {
-    width: 80, // Sesuaikan lebar sesuai kebutuhan, ini adalah contoh
-    paddingRight: 10, // pr-4, disesuaikan
+    width: 60, // Sesuaikan lebar label "Nama" dan "Jabatan"
   },
-  // Gaya untuk kolom kedua (mirip <td> dengan className="k-2")
   column2: {
-    width: 10, // Lebar untuk kolon ":"
-    paddingRight: 5, // pr-1, disesuaikan
+    width: 15, // Lebar tetap untuk titik dua ":"
+    textAlign: 'center',
   },
-  // Gaya untuk kolom ketiga (mirip <td> dengan className="k-3")
   column3: {
-    flexGrow: 1, // Mengambil sisa ruang yang tersedia
+    // Menggunakan flex: 1 alih-alih flexGrow saja agar react-pdf 
+    // tahu batas pasti area teks untuk melakukan wrapping
+    flex: 1, 
   },
-  // Gaya tambahan
   uppercase: {
     textTransform: 'uppercase',
   },
@@ -41,17 +46,24 @@ const styles = StyleSheet.create({
   },
 });
 
-const NamaJabatan: React.FC<NamaJabatan> = ({ nama, jabatan }) => (
-  <View style={styles.container}> {/* Menggantikan <tbody> */}
-    <View style={styles.tableRow}> {/* Menggantikan <tr> */}
-      <Text style={styles.column1}>Nama</Text> {/* Menggantikan <td className="k-1 pr-4"> */}
-      <Text style={styles.column2}>:</Text> {/* Menggantikan <td className="k-2 pr-1"> */}
-      <Text style={[styles.column3, styles.uppercase, styles.bold]}>{nama || "-"}</Text> {/* Menggantikan <td className="k-3 uppercase font-bold"> */}
+const NamaJabatan: React.FC<NamaJabatanProps> = ({ nama, jabatan }) => (
+  <View style={styles.container}>
+    {/* Baris Nama */}
+    <View style={styles.tableRow}>
+      <Text style={styles.column1}>Nama</Text>
+      <Text style={styles.column2}>:</Text>
+      <Text style={[styles.column3, styles.uppercase, styles.bold]}>
+        {nama || "-"}
+      </Text>
     </View>
-    <View style={styles.tableRow}> {/* Menggantikan <tr> */}
-      <Text style={styles.column1}>Jabatan</Text> {/* Menggantikan <td className="k-1 pr-4"> */}
-      <Text style={styles.column2}>:</Text> {/* Menggantikan <td className="k-2 pr-1"> */}
-      <Text style={[styles.column3, styles.uppercase]}>{jabatan || "-"}</Text> {/* Menggantikan <td className="k-3 uppercase"> */}
+
+    {/* Baris Jabatan */}
+    <View style={styles.tableRow}>
+      <Text style={styles.column1}>Jabatan</Text>
+      <Text style={styles.column2}>:</Text>
+      <Text style={[styles.column3, styles.uppercase]}>
+        {jabatan || "-"}
+      </Text>
     </View>
   </View>
 );

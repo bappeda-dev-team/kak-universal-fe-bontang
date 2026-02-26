@@ -5,6 +5,14 @@ export interface PkOpdResponse {
   nip_kepala_opd: string;
   tahun: number;
   pk_item: PkOpdByLevel[];
+  sasaran_pemdas: SasaranPemda[];
+}
+
+export interface SasaranPemda {
+    nama_kepala_pemda: string;
+    nip_kepala_pemda: string;
+    id_sasaran_pemda: number;
+    sasaran_pemda: string;
 }
 
 export interface PkOpdByLevel {
