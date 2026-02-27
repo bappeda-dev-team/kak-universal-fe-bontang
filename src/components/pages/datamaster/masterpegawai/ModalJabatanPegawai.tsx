@@ -15,8 +15,24 @@ interface modal {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
-    Data: pegawai | null;
+    Data: pegawai | User | null;
     kode_opd: string;
+    nama_opd: string;
+}
+interface User {
+    id: string;
+    nip: string;
+    email: string;
+    nama_pegawai: string;
+    id_jabatan: string;
+    nama_jabatan: string;
+    pegawai_id: string;
+    is_active: boolean;
+    role: roles[];
+}
+interface roles {
+    id: string;
+    role: string;
 }
 interface pegawai {
     id: string;
@@ -44,15 +60,15 @@ export interface FormValue {
     bulan: OptionType | null;
 }
 
-export const ModalJabatanPegawai: React.FC<modal> = ({ isOpen, onClose, onSuccess, Data, kode_opd }) => {
+export const ModalJabatanPegawai: React.FC<modal> = ({ isOpen, onClose, onSuccess, Data, kode_opd, nama_opd }) => {
 
     const { branding } = useBrandingContext();
     const { control, handleSubmit, reset, formState: { errors } } = useForm<FormValue>({
         defaultValues: {
             nip: Data?.nip,
             kode_opd: {
-                value: branding?.opd?.value,
-                label: branding?.opd?.label
+                value: kode_opd,
+                label: nama_opd
             },
             id_jabatan: null,
             tahun: branding?.tahun?.value,

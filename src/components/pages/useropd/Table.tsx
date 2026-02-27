@@ -1,17 +1,22 @@
 'use client'
 
-import { ButtonGreen, ButtonRed, ButtonSkyBorder, ButtonGreenBorder, ButtonBlackBorder } from "@/components/global/Button";
+import { ButtonGreen, ButtonRed, ButtonBlack, ButtonGreenBorder, ButtonBlackBorder } from "@/components/global/Button";
 import { AlertNotification, AlertQuestion } from "@/components/global/Alert";
 import { LoadingClip } from "@/components/global/Loading";
 import { useState, useEffect } from "react";
 import { getToken, getUser, getOpdTahun } from "@/components/lib/Cookie";
 import { TbSearch } from "react-icons/tb";
+import { ModalJabatanPegawai } from "../datamaster/masterpegawai/ModalJabatanPegawai";
+import { useBrandingContext } from "@/context/BrandingContext";
 
 interface User {
     id: string;
     nip: string;
     email: string;
     nama_pegawai: string;
+    id_jabatan: string;
+    nama_jabatan: string;
+    pegawai_id: string;
     is_active: boolean;
     role: roles[];
 }
@@ -28,11 +33,27 @@ const Table = () => {
     const [error, setError] = useState<boolean | null>(null);
     const [Loading, setLoading] = useState<boolean | null>(null);
     const [DataNull, setDataNull] = useState<boolean | null>(null);
+    const [FetchTrigger, setFetchTrigger] = useState<boolean>(false);
+    const [ModalJabatanOpen, setModalJabatanOpen] = useState<boolean>(false);
+    const [DataModal, setDataModal] = useState<User | null>(null);
+
     const [SelectedOpd, setSelectedOpd] = useState<any>(null);
     const token = getToken();
-
+    const {branding} = useBrandingContext();
+    const kode_opd = branding?.user?.roles == "super_admin" ? branding?.opd?.value : branding?.user?.kode_opd;
+    const nama_opd = branding?.user?.roles == "super_admin" ? branding?.opd?.label : branding?.user?.nama_opd;
+    
     const [SearchParams, setSearchParams] = useState<string>("");
 
+    const handleModalJabatan = (Data: User | null) => {
+        if (ModalJabatanOpen) {
+            setModalJabatanOpen(false);
+            setDataModal(Data);
+        } else {
+            setModalJabatanOpen(true);
+            setDataModal(Data);
+        }
+    }
 
     useEffect(() => {
         const fetchUser = getUser();
@@ -90,7 +111,7 @@ const Table = () => {
                 fetchUser(`user/findall?kode_opd=${user?.kode_opd}`);
             }
         }
-    }, [token, user, SelectedOpd]);
+    }, [token, user, SelectedOpd, FetchTrigger]);
 
     const FilteredData = User?.filter((item: User) => {
         const params = SearchParams.toLowerCase();
@@ -144,7 +165,7 @@ const Table = () => {
     return (
         <>
             <div className="flex pt-2 px-2 items-center">
-                <TbSearch className="absolute ml-4 text-slate-500"/>
+                <TbSearch className="absolute ml-4 text-slate-500" />
                 <input
                     type="text"
                     placeholder="Cari nama pegawai / NIP"
@@ -160,6 +181,7 @@ const Table = () => {
                             <th className="border-r border-b px-6 py-3 min-w-[50px]">No</th>
                             <th className="border-r border-b px-6 py-3 min-w-[300px]">Nama</th>
                             <th className="border-r border-b px-6 py-3 min-w-[200px]">NIP</th>
+                            <th className="border-r border-b px-6 py-3 min-w-[200px]">Jabatan</th>
                             <th className="border-r border-b px-6 py-3 min-w-[200px]">Email</th>
                             <th className="border-r border-b px-6 py-3 min-w-[100px]">Status</th>
                             <th className="border-r border-b px-6 py-3 min-w-[100px]">Roles</th>
@@ -179,6 +201,7 @@ const Table = () => {
                                     <td className="border-r border-b px-6 py-4 text-center">{index + 1}</td>
                                     <td className="border-r border-b px-6 py-4">{data.nama_pegawai ? data.nama_pegawai : "-"}</td>
                                     <td className="border-r border-b px-6 py-4 text-center">{data.nip ? data.nip : "-"}</td>
+                                    <td className="border-r border-b px-6 py-4 text-center">{data.nama_jabatan? data.nama_jabatan: "-"}</td>
                                     <td className="border-r border-b px-6 py-4 text-center">{data.email ? data.email : "-"}</td>
                                     <td className="border-r border-b px-6 py-4 text-center">{data.is_active === true ? 'Aktif' : 'tidak aktif'}</td>
                                     {data.role ?
@@ -191,6 +214,12 @@ const Table = () => {
                                     <td className="border-r border-b px-6 py-4">
                                         <div className="flex flex-col jutify-center items-center gap-2">
                                             <ButtonGreen className="w-full" halaman_url={`/useropd/${data.id}`}>Edit</ButtonGreen>
+                                            <ButtonBlack
+                                                className="w-full"
+                                                onClick={() => handleModalJabatan(data)}
+                                            >
+                                                Jabatan
+                                            </ButtonBlack>
                                             <ButtonRed
                                                 className="w-full"
                                                 onClick={() => {
@@ -211,6 +240,16 @@ const Table = () => {
                     </tbody>
                 </table>
             </div>
+            {ModalJabatanOpen &&
+                <ModalJabatanPegawai
+                    onClose={() => handleModalJabatan(null)}
+                    isOpen={ModalJabatanOpen}
+                    onSuccess={() => setFetchTrigger((prev) => !prev)}
+                    Data={DataModal}
+                    kode_opd={kode_opd}
+                    nama_opd={nama_opd}
+                />
+            }
         </>
     )
 }

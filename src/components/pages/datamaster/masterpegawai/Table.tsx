@@ -362,6 +362,7 @@ const Table = () => {
                     onSuccess={() => setFetchTrigger((prev) => !prev)}
                     Data={DataModal}
                     kode_opd={Opd?.value ?? ""}
+                    nama_opd={Opd?.label ?? ""}
                 />
             }
         </>
