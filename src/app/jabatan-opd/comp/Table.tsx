@@ -57,7 +57,11 @@ const Table: React.FC<Table> = ({ nama_opd, kode_opd, tahun }) => {
                 const result = await response.json();
                 const data = result.data;
                 if (result.code === 200) {
-                    setData(data);
+                    if(data === null){
+                        setData([]);
+                    } else {
+                        setData(data);
+                    }
                 } else {
                     setData([]);
                     setError(true);
