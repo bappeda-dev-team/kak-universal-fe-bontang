@@ -823,7 +823,7 @@ export const ModalRencanaKinerja: React.FC<ModalProps> = ({ isOpen, onClose, id,
                             indikator rencana kinerja :
                         </label>
                         {fields.map((field, index) => (
-                            <div key={index} className="flex flex-col bg-gray-100 my-2 py-2 px-2 rounded-lg">
+                            <div key={field.id} className="flex flex-col bg-gray-100 my-2 py-2 px-2 rounded-lg">
                                 <Controller
                                     name={`indikator.${index}.nama_indikator`}
                                     control={control}

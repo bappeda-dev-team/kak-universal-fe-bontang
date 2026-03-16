@@ -404,7 +404,7 @@ export const ModalSasaranOpd: React.FC<modal> = ({ isOpen, onClose, id, id_pohon
                                 indikator Sasaran OPD :
                             </label>
                             {fields.map((field, index_indikator: number) => (
-                                <React.Fragment key={index_indikator}>
+                                <React.Fragment key={field.id}>
                                     <div className="flex flex-col border border-gray-300 my-2 py-2 px-2 rounded-lg">
                                         <Controller
                                             name={`indikator.${index_indikator}.indikator`}
