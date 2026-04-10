@@ -453,7 +453,7 @@ export const ModalTujuanPemda: React.FC<modal> = ({ isOpen, onClose, id, tema_id
                             indikator Tujuan Pemda :
                         </label>
                         {fields.map((field, index) => (
-                            <React.Fragment key={index}>
+                            <React.Fragment key={field.id}>
                                 <div className="flex flex-col bg-gray-300 my-2 py-2 px-2 rounded-lg">
                                     <Controller
                                         name={`indikator.${index}.indikator`}

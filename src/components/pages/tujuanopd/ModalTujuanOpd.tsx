@@ -402,7 +402,7 @@ export const ModalTujuanOpd: React.FC<modal> = ({ isOpen, onClose, id, kode_opd,
                             indikator Tujuan OPD :
                         </label>
                         {fields.map((field, index) => (
-                            <React.Fragment key={index}>
+                            <React.Fragment key={field.id}>
                                 <div className="flex flex-col my-2 py-2 rounded-lg">
                                     <Controller
                                         name={`indikator.${index}.indikator`}
