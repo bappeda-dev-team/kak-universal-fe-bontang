@@ -302,7 +302,7 @@ const Table: React.FC<table> = ({ tipe, id_periode, tahun_awal, tahun_akhir, jen
                                             </td>
                                             <td className="border-r border-b border-emerald-500 px-6 py-4" rowSpan={data.sasaran_opd.length === 0 ? 2 : TotalRow}>
                                                 <div className="flex flex-col gap-2">
-                                                    {data.nama_pohon || "-"}
+                                                    {data.nama_pohon || "-"} {data.tahun_pohon || ""}
                                                     {tipe === "opd" &&
                                                         <div className="flex items center gap-1 border-t border-emerald-500 pt-3">
                                                             <div className="flex flex-col justify-between  gap-2 h-full w-full">
