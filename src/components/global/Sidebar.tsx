@@ -16,6 +16,7 @@ import {
 import Image from 'next/image';
 import { usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
+// @ts-ignore: allow side-effect CSS import without type declarations
 import "@/app/globals.css";
 import { logout, getUser } from '../lib/Cookie';
 import { useBrandingContext } from '@/context/BrandingContext';
@@ -372,6 +373,19 @@ export const Sidebar = ({ isZoomed, isOpen, toggleSidebar }: SidebarProps) => {
                   <span className={`${!isOpen && 'hidden'} origin-left duration-200`}>Program Unggulan</span>
                 </li>
               </Link>
+              <Link href="/DataMaster/bidang-urusan-opd">
+                <li
+                  className={`flex items-center gap-x-2 cursor-pointer p-2 rounded-xl transition-all duration-300 ease-in-out ${url === "/DataMaster/bidang-urusan-opd" ? "bg-white text-gray-800" : "hover:bg-slate-500"}`}
+                >
+                  <TbFileDelta className="text-xl" />
+                  <span
+                    className={`${!isOpen && "hidden"} origin-left duration-200 text-sm`}
+                  >
+                    Bidang Urusan OPD
+                  </span>
+                </li>
+              </Link>
+
               {/* LABEL MASTER PROGRAM KEGIATAN */}
               <li
                 className={`flex justify-between items-center gap-x-2 cursor-pointer p-2 rounded-xl transition-all duration-300 ease-in-out hover:bg-slate-500`}
